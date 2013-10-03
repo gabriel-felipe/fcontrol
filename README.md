@@ -4,7 +4,7 @@ fcontrol
 Classe para facilitar a integração com o fcontrol via webservice.
 
 Exemplo de uso 
-[code]
+```php
 $pagamentos = array(
     "metodo" => "2", // Lista de códigos em https://www.fcontrol.com.br/manuaisfcontrol/Anexos/CodigoMetodosPagamento.aspx?enum=false
     "parcelas" => "1",
@@ -34,4 +34,4 @@ $fcontrol->setTransacao("489");
 $fcontrol->setPagamentos(array($pagamentos));
 $fcontrol->setProdutos($produtos);
 print_r($fcontrol->send());
-[/code]
+```
