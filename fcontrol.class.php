@@ -261,7 +261,7 @@ class fcontrol {
 
         }
         
-        public function setProdutos($produtos,$paraPresente=false,$listaCasamento=false){
+        public function setProdutos($produtos){
             /*
             (array)@produtos, é esperado um array multidimensional e associativo dos produtos exemplo: 
             $produtos = [
@@ -271,9 +271,10 @@ class fcontrol {
                     "cod" => "Código produto"
                     "valor" => "130.69", // Valor do produto somente os números, "." como separador.
                     "categoria" => "categoria do produto"
+                    "paraPresente" => "true" or "false", se não colocar a chave será considerado falso
+                    "listaCasamento" => "true" or "false", se não colocar a chave será considerado falso
                 ]
             ]
-            (bool)@paraPresente, se esses produtos são para presente ou não. True or False
             (bool)@listaCasamento, se esses produtos são de lista de casamento ou não. True or False
             */
             if(!is_array($produtos)){
@@ -284,7 +285,9 @@ class fcontrol {
                     "nome"=>"descricoesProdutos",
                     "quantidade"=>"quantidadesProdutos", //Caso em branco será assumido 1
                     "valor" =>"valoresProdutos",
-                    "categoria"=>"categoriasProdutos"
+                    "categoria"=>"categoriasProdutos",
+                    "paraPresente"=>"paraPresenteProdutos",
+                    "listaCasamento"=>"listaCasamentoProdutos"
                 ); //Associa as chaves do array ao atributo da classe;
 
                 $totalCompra = 0;
@@ -294,6 +297,9 @@ class fcontrol {
                     if(!isset($produto['quantidade']) or (int)$produto['quantidade'] < 1){
                         $produto['quantidade'] = 1;
                     }
+                    $produto['paraPresente'] = (isset($produto['paraPresente']) and $produto['paraPresente']) ? "true" : "false";
+                    $produto['listaCasamento'] = (isset($produto['listaCasamento']) and $produto['listaCasamento']) ? "true" : "false";
+
                     $produto['valor'] = (float)$produto['valor'] * 100;
                     $totalCompra += $produto['valor']*(int)$produto['quantidade'];
                     $totalItens += (int)$produto['quantidade'];
@@ -302,8 +308,6 @@ class fcontrol {
                 $this->quantidadeItensDistintos = $itensUnicos;
                 $this->quantidadeTotalItens = $totalItens;
                 $this->valorTotalCompra = $totalCompra;
-                $this->paraPresenteProdutos = ($paraPresente) ? "true" : "false";
-                $this->listaCasamentoProdutos = ($listaCasamento) ? "true" : "false";
             }
             
         }
@@ -878,7 +882,18 @@ class fcontrol {
         $url = $url."?".$params;
         $file = file_get_contents($url);
         return $file;
-        
+        // // Aqui entra o action do formulário - pra onde os dados serão enviados
+        // $cURL = curl_init($url);
+        // curl_setopt($cURL, CURLOPT_RETURNTRANSFER, true);
+
+        // // Iremos usar o método POST
+        // curl_setopt($cURL, CURLOPT_GET, true);
+        // // Definimos quais informações serão enviadas pelo POST (array)
+        // curl_setopt($cURL, CURLOPT_GETFIELDS, $params);
+
+        // $resultado = curl_exec($cURL);
+        // curl_close($cURL);
+        // return $resultado;
     }
 
 }
