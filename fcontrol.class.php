@@ -896,4 +896,123 @@ class fcontrol {
         // return $resultado;
     }
 
+    /*Função para retornar transações e checar status*/
+    public function getTransacoes(){
+        $url = "https://secure.fcontrol.com.br/WSFControl2/ResultadoAnaliseGeral2.aspx?";
+        $params = http_build_query(array("login"=>$this->login,"senha"=>$this->Senha));
+        $url .= $params;
+        $result = file_get_contents($url);
+        $transacoes = array();
+        $results = explode(";",$result);
+        
+        foreach($results as $result){
+            $transacao = $this->decodeTransacao($result);
+            $transacoes[] = $transacao;
+
+               
+        }
+        return $transacoes;
+    }
+    public function getTransacao($cod){
+        $url = "https://secure.fcontrol.com.br/WSFControl2/ResultadoAnaliseEspecifico2.aspx?";
+        $params = http_build_query(array("login"=>$this->login,"senha"=>$this->Senha,"codigoPedido"=>$cod));
+        $url .= $params;
+        $result = file_get_contents($url);
+        return $this->decodeTransacao($result);
+
+    }
+    private function decodeCodigoMotivoCancelado($cod){
+        $codigos = array();
+        $codigos[0] = array("status"=>"Vazio","descricao"=>"Quando não tiver o módulo de motivos ativado ou não for um status de Cancelado, Cancelado por Suspeita e Fraude Confirmada o código será 0 (Zero). Acesse http://www.fcontrol.com.br/admin e clique no botão \"Configurações\" para habilitar o módulo Motivos de Cancelamento.");
+        $codigos[1] = array("status"=>"Cancelado","descricao"=>"Cartão De Terceiro Não Localizado");
+        $codigos[30] = array("status"=>"Cancelado","descricao"=>"Chargeback em pedido anterior do cliente com Perda Financeira");
+        $codigos[36] = array("status"=>"Cancelado","descricao"=>"Chargeback em pedido anterior do cliente sem Perda Financeira");
+        $codigos[34] = array("status"=>"Cancelado","descricao"=>"Desacordo Comercial");
+        $codigos[2] = array("status"=>"Cancelado","descricao"=>"Desistência do Comprador ou Titular do Cartão");
+        $codigos[3] = array("status"=>"Cancelado","descricao"=>"Desistência do Lojista");
+        $codigos[4] = array("status"=>"Cancelado","descricao"=>"Duplicidade");
+        $codigos[5] = array("status"=>"Cancelado","descricao"=>"Endereço Incompleto");
+        $codigos[6] = array("status"=>"Cancelado","descricao"=>"Histórico Restritivo No Mercado");
+        $codigos[10] = array("status"=>"Cancelado","descricao"=>"Lojista Fraudulento");
+        $codigos[7] = array("status"=>"Cancelado","descricao"=>"Lojista Suspeito");
+        $codigos[11] = array("status"=>"Cancelado","descricao"=>"Outros");
+        $codigos[24] = array("status"=>"Cancelado","descricao"=>"Pedido Expirado");
+        $codigos[8] = array("status"=>"Cancelado","descricao"=>"Telefone Incompleto");
+        $codigos[9] = array("status"=>"Cancelado","descricao"=>"Tentativas De Contato Sem Sucesso");
+        $codigos[37] = array("status"=>"Cancelado","descricao"=>"Boleto Vencido");
+        $codigos[38] = array("status"=>"Cancelado","descricao"=>"Nº Tentativas TEF Esgotadas");
+        $codigos[39] = array("status"=>"Cancelado","descricao"=>"Estoque Esgotado");
+        $codigos[40] = array("status"=>"Cancelado","descricao"=>"Insatisfação com Produto");
+        $codigos[41] = array("status"=>"Cancelado","descricao"=>"Atraso Troca");
+        $codigos[42] = array("status"=>"Cancelado","descricao"=>"Produto Errado");
+        $codigos[12] = array("status"=>"Cancelado por Suspeita","descricao"=>"Cartão De Crédito Emitido No Exterior");
+        $codigos[13] = array("status"=>"Cancelado por Suspeita","descricao"=>"Cartão De Terceiro Não Identificado");
+        $codigos[23] = array("status"=>"Cancelado por Suspeita","descricao"=>"Comportamento Suspeito Durante Contato");
+        $codigos[14] = array("status"=>"Cancelado por Suspeita","descricao"=>"Dados Pessoais Inválidos");
+        $codigos[15] = array("status"=>"Cancelado por Suspeita","descricao"=>"Endereço Divergente");
+        $codigos[16] = array("status"=>"Cancelado por Suspeita","descricao"=>"Histórico De Fraude No FControl");
+        $codigos[22] = array("status"=>"Cancelado por Suspeita","descricao"=>"Historico de Transação Em Recuperação de Perdas");
+        $codigos[17] = array("status"=>"Cancelado por Suspeita","descricao"=>"Histórico De Transações Suspensas No FControl");
+        $codigos[18] = array("status"=>"Cancelado por Suspeita","descricao"=>"Telefone Divergente");
+        $codigos[19] = array("status"=>"Cancelado por Suspeita","descricao"=>"Telefone Inválido");
+        $codigos[27] = array("status"=>"Fraude Confirmada","descricao"=>"Auto-Fraude com Perda Financeira");
+        $codigos[31] = array("status"=>"Fraude Confirmada","descricao"=>"Auto-Fraude sem Perda Financeira");
+        $codigos[20] = array("status"=>"Fraude Confirmada","descricao"=>"Comprador Não Reconhece Transação com Perda Financeira");
+        $codigos[32] = array("status"=>"Fraude Confirmada","descricao"=>"Comprador Não Reconhece Transação sem Perda Financeira");
+        $codigos[28] = array("status"=>"Fraude Confirmada","descricao"=>"Fraude De Identidade");
+        $codigos[29] = array("status"=>"Fraude Confirmada","descricao"=>"Fraudes Vinculadas com Perda Financeira");
+        $codigos[35] = array("status"=>"Fraude Confirmada","descricao"=>"Fraudes Vinculadas sem Perda Financeira");
+        $codigos[11] = array("status"=>"Fraude Confirmada","descricao"=>"Outros");
+        $codigos[21] = array("status"=>"Fraude Confirmada","descricao"=>"Titular Do Cartão Não Reconhece Transação com Perda Financeira");
+        $codigos[33] = array("status"=>"Fraude Confirmada","descricao"=>"Titular Do Cartão Não Reconhece Transação sem Perda Financeira");
+        return (isset($codigos[$cod])) ? $codigos[$cod] : array("status"=>"","descricao"=>"");
+    }
+    private function decodeTransacao($transacao){ //Formato da transacao=>CódigoPedido1|NomeDoAnalista1|EmailAnalista1|RamalAnalista1|TelefoneAnalista1| StatusPedido1|CódigoMotivo1|Comentário1|OpiniãoFControl1|ScoreFcontrol1
+        $res = explode("|",$transacao);
+        if(count($res) > 2){
+            $transacao = array();
+            $transacao['cod'] = $res[0];
+            $transacao['nomeAnalista'] = urldecode($res[1]);
+            $transacao['EmailAnalista'] = urldecode($res[2]);
+            $transacao['ramalAnalista'] = urldecode($res[3]);
+            $transacao['telefoneAnalista'] = urldecode($res[4]);
+            $transacao['statusTransacao'] = urldecode($res[5]);
+            $transacao['statusTransacaoDescritivo'] = $this->decodeStatusTransacao($res[5]);
+            $transacao['codigoMotivo'] = urldecode($res[6]);
+            $transacao['comentario'] = urldecode($res[7]);
+            $transacao['opiniaoFcontrol'] = urldecode($res[8]);
+            $transacao['ScoreFcontrol'] = urldecode($res[9]);
+            if($transacao['codigoMotivo'] !== ""){
+                $codigo = $this->decodeCodigoMotivoCancelado($transacao['codigoMotivo']);
+                $transacao['statusCodigo'] = $codigo['status'];
+                $transacao['descricaoCodigo'] = $codigo['descricao'];
+            }
+            return $transacao;
+        } else {
+            
+            switch ($res[0]) {
+            case "100": throw new Exception("O código do pedido não pode ser nulo ou em branco.", 1); break;
+            case "154": throw new Exception("Usuário / Senha inválido(s). Verifique identificação.", 1); break;
+            case "157": throw new Exception("Um valor potencialmente perigoso foi detectado a partir de um dos parâmetros informados. Não utilize caracteres especiais ao informar os valores dos parâmetros.", 1); break;
+            case "146": throw new Exception("Login inválido, este parâmetro é obrigatório", 1); break;
+            case "147": throw new Exception("Senha inválida, este parâmetro é obrigatório", 1); break;
+            case "991": throw new Exception("Nenhum resultado foi encontrado.", 1); break;
+            case "999": throw new Exception("Exceção não identificada.", 1); break;
+            case "998": throw new Exception("Pedido não identificado.", 1); break;
+            
+            }
+            throw new Exception($transacao);
+        }
+    }
+    private function decodeStatusTransacao($cod){
+        $codigos = array();
+        $codigos[2] = "Enviado";
+        $codigos[3] = "Cancelado";
+        $codigos[6] = "Cancelado por Suspeita";
+        $codigos[7] = "Aprovada";
+        $codigos[10] = "Fraude Confirmada";
+        $codigos[13] = "Não aprovado pela operadora do cartão";
+        return (isset($codigos[$cod])) ? $codigos[$cod] : "";
+    }
 }
+?>
