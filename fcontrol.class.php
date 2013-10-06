@@ -96,8 +96,10 @@ class fcontrol {
                 [ip] //Manter "."'s 200.17.200.16
                 [sexo] // "M" ou "F"
             */
-            if(!$nome or !(int)$cpf or !$email){
-                throw new Exception("Erro, os parametros nome,cpf e email são obrigatórios para definir o comprador", 1);                
+            if(!$nome or !$cpf or !$email){
+                throw new Exception("Erro, os parametros nome,cpf e email são obrigatórios para definir o comprador,
+                passados: [$nome],[$cpf],[$email]
+                    ", 1);                
             } else {
                 $informacoesAdicionais['nome']  = $nome;
                 $informacoesAdicionais['cpf']   = $cpf;
@@ -804,6 +806,54 @@ class fcontrol {
         private function parseCepComprador($cep){;
             return $this->parseCep($cep);
         }
+        private function parseUf($uf){
+            if(strlen($uf) > 2){
+                $a = 'ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûýýþÿŔŕ';
+                $b = 'AAAAAAACEEEEIIIIDNOOOOOOUUUUYobaaaaaaaceeeeiiiionoooooouuuyybyRr';
+                $estado = utf8_decode($uf);
+                $estado = strtr($uf, utf8_decode($a), $b);
+                $estado = str_replace(" ","_",$estado);
+                $estado = strtolower($estado);
+                $estados = array(
+                "acre"=>"AC",
+                "alagoas"=>"AL",
+                "amazonas"=>"AM",
+                "amapa"=>"AP",
+                "bahia"=>"BA",
+                "ceara"=>"CE",
+                "distrito_federal"=>"DF",
+                "espírito_santo"=>"ES",
+                "goias"=>"GO",
+                "maranhao"=>"MA",
+                "mato_grosso"=>"MT",
+                "mato_grosso_do_sul"=>"MS",
+                "minas_gerais"=>"MG",
+                "para"=>"PA",
+                "paraiba"=>"PB",
+                "parana"=>"PR",
+                "pernambuco"=>"PE",
+                "piaui"=>"PI",
+                "rio_de_janeiro"=>"RJ",
+                "rio_grande_do_norte"=>"RN",
+                "rondonia"=>"RO",
+                "rio_grande_do_sul"=>"RS",
+                "roraima"=>"RR",
+                "santa_catarina"=>"SC",
+                "sergipe"=>"SE",
+                "sao_paulo"=>"SP",
+                "tocantins"=>"TO"
+                ); 
+                return isset($estados[$estado]) ? $estados[$estado] : strtoupper($uf);
+            } else {
+                return strtoupper($uf);
+            }
+        }
+        private function parseUfComprador($uf){
+            return $this->parseUf($uf);
+        }
+        private function parseUfEntrega($uf){
+            return $this->parseUf($uf);
+        }
     /* Helpers */
         private function arrayToAttrs($infos,$keyMap){
             /*Helper para converter um array em atributos da classe. 
@@ -880,20 +930,15 @@ class fcontrol {
         $params = $this->getAttrs();
         $params = http_build_query($params);
         $url = $url."?".$params;
-        $file = file_get_contents($url);
-        return $file;
-        // // Aqui entra o action do formulário - pra onde os dados serão enviados
-        // $cURL = curl_init($url);
-        // curl_setopt($cURL, CURLOPT_RETURNTRANSFER, true);
 
-        // // Iremos usar o método POST
-        // curl_setopt($cURL, CURLOPT_GET, true);
-        // // Definimos quais informações serão enviadas pelo POST (array)
-        // curl_setopt($cURL, CURLOPT_GETFIELDS, $params);
+        //  Aqui entra o action do formulário - pra onde os dados serão enviados
+         $cURL = curl_init($url);
+         curl_setopt($cURL, CURLOPT_RETURNTRANSFER, true);
+         curl_setopt($cURL, CURLOPT_SSL_VERIFYPEER, false);
 
-        // $resultado = curl_exec($cURL);
-        // curl_close($cURL);
-        // return $resultado;
+         $resultado = curl_exec($cURL);
+         curl_close($cURL);
+         return $resultado;
     }
 
     /*Função para retornar transações e checar status*/
@@ -901,9 +946,15 @@ class fcontrol {
         $url = "https://secure.fcontrol.com.br/WSFControl2/ResultadoAnaliseGeral2.aspx?";
         $params = http_build_query(array("login"=>$this->login,"senha"=>$this->Senha));
         $url .= $params;
-        $result = file_get_contents($url);
-        $transacoes = array();
-        $results = explode(";",$result);
+        //  Aqui entra o action do formulário - pra onde os dados serão enviados
+         $cURL = curl_init($url);
+         curl_setopt($cURL, CURLOPT_RETURNTRANSFER, true);
+         curl_setopt($cURL, CURLOPT_SSL_VERIFYPEER, false);
+
+         $resultado = curl_exec($cURL);
+         curl_close($cURL);
+         $transacoes = array();
+        $results = explode(";",$resultado);
         
         foreach($results as $result){
             $transacao = $this->decodeTransacao($result);
@@ -917,13 +968,19 @@ class fcontrol {
         $url = "https://secure.fcontrol.com.br/WSFControl2/ResultadoAnaliseEspecifico2.aspx?";
         $params = http_build_query(array("login"=>$this->login,"senha"=>$this->Senha,"codigoPedido"=>$cod));
         $url .= $params;
-        $result = file_get_contents($url);
-        return $this->decodeTransacao($result);
+        //  Aqui entra o action do formulário - pra onde os dados serão enviados
+        $cURL = curl_init($url);
+        curl_setopt($cURL, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($cURL, CURLOPT_SSL_VERIFYPEER, false);
+
+        $resultado = curl_exec($cURL);
+        curl_close($cURL);
+        return $this->decodeTransacao($resultado);
 
     }
     private function decodeCodigoMotivoCancelado($cod){
         $codigos = array();
-        $codigos[0] = array("status"=>"Vazio","descricao"=>"Quando não tiver o módulo de motivos ativado ou não for um status de Cancelado, Cancelado por Suspeita e Fraude Confirmada o código será 0 (Zero). Acesse http://www.fcontrol.com.br/admin e clique no botão \"Configurações\" para habilitar o módulo Motivos de Cancelamento.");
+        $codigos[0] = array("status"=>"","descricao"=>"");
         $codigos[1] = array("status"=>"Cancelado","descricao"=>"Cartão De Terceiro Não Localizado");
         $codigos[30] = array("status"=>"Cancelado","descricao"=>"Chargeback em pedido anterior do cliente com Perda Financeira");
         $codigos[36] = array("status"=>"Cancelado","descricao"=>"Chargeback em pedido anterior do cliente sem Perda Financeira");
